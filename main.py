@@ -64,11 +64,11 @@ def processCommand(c):
         print(f"Unknown command: {c}")
 
 
+# ================= Main Loop =================
 if __name__ == "__main__":
     speak("Initializing Jarvis...")
 
     while True:
-
         try:
             # Listen for wake word
             with sr.Microphone() as source:
