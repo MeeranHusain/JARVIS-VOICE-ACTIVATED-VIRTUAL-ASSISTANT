@@ -1,6 +1,7 @@
 import speech_recognition as sr
 import webbrowser
 import pyttsx3
+import musicLibrary
 
 recognizer = sr.Recognizer()
 
@@ -22,6 +23,11 @@ def processCommand(c):
 
         print(f"Opening: {url}")
         webbrowser.open(url)
+        
+    elif c.lower().startswith("play"):
+        song = c.lower().split(" ")[1]
+        link = musicLibrary.music[song]
+        webbrowser.open(link)
 
     else:
         print(f"Unknown command: {c}")
