@@ -5,18 +5,44 @@ import musicLibrary
 import requests
 import os
 from dotenv import load_dotenv
+import ollama
+
 load_dotenv()
+
 newsapi = os.getenv("NEWSDATA_API_KEY")
+api_key = os.getenv("OLLAMA_API_KEY")
 
 recognizer = sr.Recognizer()
 
+client = ollama.Client(host="https://ollama.com", headers={"Authorization": f"Bearer {api_key}"})
+
+# ================= Text-to-Speech Function =================
 def speak(text):
     engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
     engine.stop()
 
+# ================= AI Process Function =================
+def aiProcess(command):
+    response = client.chat(
+        model="gpt-oss:20b-cloud",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are Jarvis, a helpful virtual assistant."
+            },
+            {
+                "role": "user",
+                "content": command
+            }
+        ]
+    )
 
+    return response["message"]["content"]
+
+
+# ================= Command Processing Function =================
 def processCommand(c):
     command = c.lower().strip()
 
@@ -25,21 +51,36 @@ def processCommand(c):
         website = command.replace("open ", "", 1).strip()
 
         # Website name ko URL me convert karo
-        url = f"https://www.{website}.com"
+        if website.startswith(("http://", "https://")):
+            url = website
+        elif "." in website:
+            url = f"https://{website}"
+        else:
+            url = f"https://www.{website}.com"
 
         print(f"Opening: {url}")
         webbrowser.open(url)
     
     # ================= for music commands =================
-    elif c.lower().startswith("play"):
-        song = c.lower().split(" ")[1]
-        link = musicLibrary.music[song]
-        webbrowser.open(link)
+    elif command.startswith("play "):
+        song = command[5:].strip()
+
+        if song in musicLibrary.music:
+            link = musicLibrary.music[song]
+            webbrowser.open(link)
+        else:
+            speak("Sorry, I could not find that song.")
     
     # ================= for news commands =================
-    elif "news" in c.lower():
+    elif "news" in command:
         newsurl = f"https://newsdata.io/api/1/latest?apikey={newsapi}&country=in&language=en"
-        r = requests.get(newsurl)
+        try:
+            r = requests.get(newsurl, timeout=10)
+        except requests.RequestException as e:
+            print("News API Error:", e)
+            speak("Sorry, I could not connect to the news service.")
+            return
+        
         # print(r.json())
         if r.status_code == 200:
             data = r.json()
@@ -61,8 +102,10 @@ def processCommand(c):
             speak("Sorry, I could not fetch the news.")
 
     else:
-        print(f"Unknown command: {c}")
-
+        # ================= for AI commands =================
+        response = aiProcess(command)
+        print(f"Jarvis: {response}")
+        speak(response)
 
 # ================= Main Loop =================
 if __name__ == "__main__":
@@ -81,7 +124,7 @@ if __name__ == "__main__":
 
             print(f"You said: {word}")
 
-            if word.lower().strip() == "jarvis":
+            if "jarvis" in word.lower():
 
                 speak("Yes, how can I assist you?")
 
