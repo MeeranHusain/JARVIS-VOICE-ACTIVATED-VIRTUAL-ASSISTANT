@@ -1,7 +1,8 @@
 import speech_recognition as sr
 import webbrowser
 import pyttsx3
-import musicLibrary
+# import musicLibrary
+import yt_dlp
 import requests
 import os
 from dotenv import load_dotenv
@@ -48,29 +49,80 @@ def processCommand(c):
 
     # ================= for opening websites =================
     if command.startswith("open "):
-        website = command.replace("open ", "", 1).strip()
+        website = command[5:].strip()
 
-        # Website name ko URL me convert karo
+        if not website:
+            speak("Please tell me which website you want to open.")
+            return
+
+        # Direct URL
         if website.startswith(("http://", "https://")):
             url = website
-        elif "." in website:
-            url = f"https://{website}"
-        else:
-            url = f"https://www.{website}.com"
+            print(f"Opening: {url}")
+            webbrowser.open(url)
 
-        print(f"Opening: {url}")
-        webbrowser.open(url)
+        # Domain name
+        elif "." in website and " " not in website:
+            url = f"https://{website}"
+            print(f"Opening: {url}")
+            webbrowser.open(url)
+
+        # Website name
+        else:
+            search_url = (
+                "https://www.google.com/search?q="
+                + website.replace(" ", "+")
+            )
+
+            print(f"Searching website: {website}")
+            webbrowser.open(search_url)
     
     # ================= for music commands =================
+    # elif command.startswith("play "):
+    #     song = command[5:].strip()
+
+    #     if song in musicLibrary.music:
+    #         link = musicLibrary.music[song]
+    #         webbrowser.open(link)
+    #     else:
+    #         speak("Sorry, I could not find that song.")
+    
     elif command.startswith("play "):
         song = command[5:].strip()
 
-        if song in musicLibrary.music:
-            link = musicLibrary.music[song]
-            webbrowser.open(link)
+        if song:
+            speak(f"Searching for {song}")
+
+            try:
+                ydl_opts = {
+                    "quiet": True,
+                    "extract_flat": True,
+                    "noplaylist": True
+                }
+
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    result = ydl.extract_info(
+                        f"ytsearch1:{song}",
+                        download=False
+                    )
+
+                if result and result.get("entries"):
+                    video = result["entries"][0]
+                    video_url = video["url"]
+
+                    print(f"Playing: {video.get('title')}")
+                    webbrowser.open(video_url)
+
+                else:
+                    speak("Sorry, I could not find that song.")
+
+            except Exception as e:
+                print("Music Error:", e)
+                speak("Sorry, I could not play that song.")
+
         else:
-            speak("Sorry, I could not find that song.")
-    
+            speak("Please tell me which song you want to play.")
+        
     # ================= for news commands =================
     elif "news" in command:
         newsurl = f"https://newsdata.io/api/1/latest?apikey={newsapi}&country=in&language=en"
