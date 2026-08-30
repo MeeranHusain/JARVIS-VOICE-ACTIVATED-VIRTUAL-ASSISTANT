@@ -48,48 +48,19 @@ def processCommand(c):
     command = c.lower().strip()
 
     # ================= for opening websites =================
-    # if command.startswith("open "):
-    #     website = command.replace("open ", "", 1).strip()
-
-    #     # Website name ko URL me convert karo
-    #     if website.startswith(("http://", "https://")):
-    #         url = website
-    #     elif "." in website:
-    #         url = f"https://{website}"
-    #     else:
-    #         url = f"https://www.{website}.com"
-
-    #     print(f"Opening: {url}")
-    #     webbrowser.open(url)
-    
     if command.startswith("open "):
-            website = command[5:].strip()
-    
-            if not website:
-                speak("Please tell me which website you want to open.")
-                return
-    
-            # Direct URL
-            if website.startswith(("http://", "https://")):
-                url = website
-                print(f"Opening: {url}")
-                webbrowser.open(url)
-    
-            # Domain name
-            elif "." in website and " " not in website:
-                url = f"https://{website}"
-                print(f"Opening: {url}")
-                webbrowser.open(url)
-    
-            # Website name
-            else:
-                search_url = (
-                    "https://www.google.com/search?q="
-                    + website.replace(" ", "+")
-                )
-    
-                print(f"Searching website: {website}")
-                webbrowser.open(search_url)
+        website = command.replace("open ", "", 1).strip()
+
+        # Website name ko URL me convert karo
+        if website.startswith(("http://", "https://")):
+            url = website
+        elif "." in website:
+            url = f"https://{website}"
+        else:
+            url = f"https://www.{website}.com"
+
+        print(f"Opening: {url}")
+        webbrowser.open(url)
     
     # ================= for music commands =================
     # elif command.startswith("play "):
