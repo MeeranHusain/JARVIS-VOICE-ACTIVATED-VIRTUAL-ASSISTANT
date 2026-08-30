@@ -4,3 +4,4 @@ requests==2.34.2
 python-dotenv==1.2.3
 ollama==0.6.2
 PyAudio==0.2.14
+yt-dlp==2026.8.19
